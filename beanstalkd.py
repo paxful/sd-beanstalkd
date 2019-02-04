@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/share/python/sd-agent/bin/python
 #
 # Copyright (c) 2018 Andrei Skopenko <andrei@skopenko.net>
 #
@@ -14,10 +14,13 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import sys
 import socket
 import telnetlib
 import yaml
 
+# project
+sys.path.append('/usr/share/python/sd-agent')
 from checks import AgentCheck
 
 
@@ -26,24 +29,23 @@ class Beanstalkd(AgentCheck):
     '''
 
     def check(self, instance):
-        # Attempt to load the host setting from the instance config.
+        # Attempt to load the host setting from the instance config. If not present use localhost.
         if 'host' not in instance:
             host = 'localhost'
         else:
             host = instance.get('host')
 
-        # Attempt to load the port setting from the instance config.
+        # Attempt to load the port setting from the instance config. If not present use 11300.
         if 'port' not in instance:
             port = '11300'
         else:
             port = int(instance.get('port'))
 
-        # Attempt to load the tags from the instance config.
+        # Attempt to load the tags from the instance config. If not present fallback to an empty list
         tags = instance.get('tags', [])
 
-        # Append the tag 'server: server:port' to the tags list,
-        # based on the values loaded from the instance config.
-        tags.append("server: {}:{}".format(host, port))
+        # Append the tag 'server: server:port' to the tags list, based on the values loaded from the instance config
+        # tags.append("server: {}:{}".format(host, port))
 
         # Open telnet connection to beanstalkd
         self.connect(host, port)
@@ -113,7 +115,6 @@ class Beanstalkd(AgentCheck):
                 continue
             key = '%s.%s' % (tube_name, k)
             new_dict[key] = v
-
         return new_dict
 
     def _get_tube_stats(self):
@@ -124,7 +125,6 @@ class Beanstalkd(AgentCheck):
             stats.update(tube_stats)
 
         return stats
-
 
 if __name__ == '__main__':
     # Load the check and instance configurations
